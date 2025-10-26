@@ -1,27 +1,59 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import CreateReport from './pages/CreateReport';
+import ViewReport from './pages/ViewReport';
+import Profile from './pages/Profile';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import './App.css';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function AppRoutes() {
+  const { user } = useAuth();
+
+  return (
+    <Routes>
+      <Route 
+        path="/login" 
+        element={!user ? <Login /> : <Navigate to="/dashboard" />} 
+      />
+      <Route 
+        path="/dashboard" 
+        element={user ? <Dashboard /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/create-report" 
+        element={user ? <CreateReport /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/view-report/:id" 
+        element={user ? <ViewReport /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/profile" 
+        element={user ? <Profile /> : <Navigate to="/login" />} 
+      />
+      <Route 
+        path="/" 
+        element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+      />
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-background text-foreground">
+          <AppRoutes />
+          <Toaster position="top-right" />
+        </div>
+      </Router>
+    </AuthProvider>
+  );
+}
 
 export default App;
